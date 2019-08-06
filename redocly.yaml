@@ -1,0 +1,8 @@
+specFileName: /Users/simo/aao-site-docs/openapi.yaml
+apiTitle: Against All Odds
+splitSpec: false
+codeSamples: false
+swaggerUI: false
+travis: true
+repo: S1M0N38/aao-site-docs
+oasVersion: 3.0.2
