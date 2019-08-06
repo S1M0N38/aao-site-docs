@@ -1,0 +1,563 @@
+openapi: '3.0.2'
+info:
+  title: Against All Odds
+  version: '0.0.1'
+  description: '
+    This is the official docs of the Against All Odds REST-API
+    ([aao-site](https://github.com/S1M0N38/aao-site)).
+
+    # Introduction
+    
+    The pourpose of this docs is to provide the explanation of all the endopoint
+    avaiable on *aao-script*. Parallel to this site exists the *aao* project
+    (a python package) and you can find its documentation
+    [here](https://s1m0n38.github.io/aao/). A section of that python packagei
+    consist of wrapper around this REST-API so, if your language of choice is
+    python, give it a shot.
+
+
+    *This api is a part of a project that aim to create a betting environment
+    where everyone can test his strategy without the risks to lose real money.*
+    In order to achive this goal we collect the odds data from four of the most
+    important bookmakers and store in a database. After doing that we expose the
+    collected data through this API and we also provide a way to place fake bets
+    on these odds (generating coupons). Coupons are then store in the databse and
+    their status is updating looking at the matches results. Every user can setup
+    its initial bankroll and then testing his strategy leaving to *aao* the
+    tedious work of data collection.
+    '
+
+components:
+  securitySchemes:
+    TokenAuth:
+      type: http
+      scheme: Token <put_here_your_token>
+      description: 'In order to get your token you must have a valid username
+      and password for aao-site. Then you have to sent a post request to /api/login
+      endpoint providing your credentials: the response will be the auth token.
+      During every request to the API you have to include in the headers
+      {"Authentication": "Token <put_here_your_token"}'
+
+security:
+  - TokenAuth: []
+
+paths:
+  /api/events/{id}:
+    get:
+      operationId: RetrieveEvent
+      tags:
+      - Events
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this event.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 'Return a signle event'
+          content:
+            application/json:
+              schema:
+                required:
+                - datetime
+                - country
+                - league
+                - home_team
+                - away_team
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  datetime:
+                    type: string
+                    format: date-time
+                  country:
+                    type: string
+                    maxLength: 100
+                  league:
+                    type: string
+                    maxLength: 100
+                  home_team:
+                    type: string
+                    maxLength: 100
+                  away_team:
+                    type: string
+                    maxLength: 100
+                  home_goals:
+                    type: integer
+                    maximum: 2147483647
+                    minimum: -2147483648
+                    nullable: true
+                  away_goals:
+                    type: integer
+                    maximum: 2147483647
+                    minimum: -2147483648
+                    nullable: true
+  /api/events/{country}/{league}/:
+    get:
+      operationId: RetrieveEvents
+      tags:
+      - Events
+      parameters:
+      - name: country
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: league
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 'Return events for the selcted country - league'
+          content:
+            application/json:
+              schema:
+                required:
+                - datetime
+                - country
+                - league
+                - home_team
+                - away_team
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  datetime:
+                    type: string
+                    format: date-time
+                  country:
+                    type: string
+                    maxLength: 100
+                  league:
+                    type: string
+                    maxLength: 100
+                  home_team:
+                    type: string
+                    maxLength: 100
+                  away_team:
+                    type: string
+                    maxLength: 100
+                  home_goals:
+                    type: integer
+                    maximum: 2147483647
+                    minimum: -2147483648
+                    nullable: true
+                  away_goals:
+                    type: integer
+                    maximum: 2147483647
+                    minimum: -2147483648
+                    nullable: true
+  /api/odds/{id}:
+    get:
+      operationId: RetrieveAllOdd
+      tags:
+      - Odds
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: A unique integer value identifying this all odd.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 'Return a single odd'
+          content:
+            application/json:
+              schema:
+                required:
+                - datetime
+                - bookmaker
+                - event
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  datetime:
+                    type: string
+                    format: date-time
+                  bookmaker:
+                    enum:
+                    - bet365
+                    - bwin
+                    - 888sport
+                    - williamhill
+                  full_time_result:
+                    type: object
+                    nullable: true
+                  draw_no_bet:
+                    type: object
+                    nullable: true
+                  both_teams_to_score:
+                    type: object
+                    nullable: true
+                  double_chance:
+                    type: object
+                    nullable: true
+                  under_over:
+                    type: object
+                    nullable: true
+                  event:
+                    type: integer
+  /api/odds/{country}/{league}/:
+    get:
+      operationId: RetrieveActiveOdds
+      tags:
+      - Odds
+      parameters:
+      - name: country
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: league
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 'Return active odds for the selcted country - league'
+          content:
+            application/json:
+              schema:
+                required:
+                - odds
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  odds:
+                    type: array
+                    items:
+                      required:
+                      - datetime
+                      - bookmaker
+                      properties:
+                        id:
+                          type: integer
+                          readOnly: true
+                        datetime:
+                          type: string
+                          format: date-time
+                        bookmaker:
+                          enum:
+                          - bet365
+                          - bwin
+                          - 888sport
+                          - williamhill
+                        full_time_result:
+                          type: object
+                          nullable: true
+                        draw_no_bet:
+                          type: object
+                          nullable: true
+                        both_teams_to_score:
+                          type: object
+                          nullable: true
+                        double_chance:
+                          type: object
+                          nullable: true
+                        under_over:
+                          type: object
+                          nullable: true
+  /api/coupons/:
+    get:
+      operationId: ListCoupons
+      tags:
+      - Coupons
+      parameters: []
+      responses:
+        '200':
+          description: 'Return all coupon related to the authenticated user'
+          content:
+            application/json:
+              schema:
+                required:
+                - money
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  datetime:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  money:
+                    type: number
+                    minimum: 0
+                  note:
+                    type: string
+                  status:
+                    type: string
+                    readOnly: true
+                    nullable: true
+    post:
+      operationId: CreateCoupon
+      tags:
+      - Coupons
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - bets
+              - money
+              properties:
+                bets:
+                  type: array
+                  items:
+                    required:
+                    - type
+                    - option
+                    - odd
+                    properties:
+                      id:
+                        type: integer
+                        readOnly: true
+                      type:
+                        enum:
+                        - full_time_result
+                        - draw_no_bet
+                        - both_teams_to_score
+                        - double_chance
+                        - under_over
+                      option:
+                        enum:
+                        - '1'
+                        - X
+                        - '2'
+                        - '12'
+                        - 1X
+                        - X2
+                        - over
+                        - under
+                        - 'yes'
+                        - 'no'
+                      value:
+                        type: number
+                        nullable: true
+                      status:
+                        type: string
+                        nullable: true
+                      odd:
+                        type: integer
+                  writeOnly: true
+                money:
+                  type: number
+                  minimum: 0
+                note:
+                  type: string
+      responses:
+        '200':
+          description: 'Return the new created coupon'
+          content:
+            application/json:
+              schema:
+                required:
+                - money
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  datetime:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  money:
+                    type: number
+                    minimum: 0
+                  note:
+                    type: string
+                  status:
+                    type: string
+                    readOnly: true
+                    nullable: true
+  /api/coupons/{id}:
+    get:
+      operationId: RetrieveCoupon
+      tags:
+      - Coupons
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 'Return a single coupon with all its bets'
+          content:
+            application/json:
+              schema:
+                required:
+                - bets
+                - money
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  bets:
+                    type: array
+                    items:
+                      required:
+                      - type
+                      - option
+                      - odd
+                      properties:
+                        id:
+                          type: integer
+                          readOnly: true
+                        type:
+                          enum:
+                          - full_time_result
+                          - draw_no_bet
+                          - both_teams_to_score
+                          - double_chance
+                          - under_over
+                        option:
+                          enum:
+                          - '1'
+                          - X
+                          - '2'
+                          - '12'
+                          - 1X
+                          - X2
+                          - over
+                          - under
+                          - 'yes'
+                          - 'no'
+                        value:
+                          type: number
+                          nullable: true
+                        status:
+                          type: string
+                          nullable: true
+                        odd:
+                          type: integer
+                  datetime:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  money:
+                    type: number
+                    minimum: 0
+                  note:
+                    type: string
+                  status:
+                    type: string
+                    nullable: true
+    delete:
+      operationId: DestroyCoupon
+      tags:
+      - Coupons
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          description: 'Empty string'
+          content:
+            application/json:
+              schema:
+                required:
+                - bets
+                - money
+                properties:
+                  id:
+                    type: integer
+                    readOnly: true
+                  bets:
+                    type: array
+                    items:
+                      required:
+                      - type
+                      - option
+                      - odd
+                      properties:
+                        id:
+                          type: integer
+                          readOnly: true
+                        type:
+                          enum:
+                          - full_time_result
+                          - draw_no_bet
+                          - both_teams_to_score
+                          - double_chance
+                          - under_over
+                        option:
+                          enum:
+                          - '1'
+                          - X
+                          - '2'
+                          - '12'
+                          - 1X
+                          - X2
+                          - over
+                          - under
+                          - 'yes'
+                          - 'no'
+                        value:
+                          type: number
+                          nullable: true
+                        status:
+                          type: string
+                          nullable: true
+                        odd:
+                          type: integer
+                  datetime:
+                    type: string
+                    format: date-time
+                    readOnly: true
+                  money:
+                    type: number
+                    minimum: 0
+                  note:
+                    type: string
+                  status:
+                    type: string
+                    nullable: true
+  /api/login/:
+    post:
+      operationId: CreateObtainAuthToken
+      tags:
+      - Login
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - username
+              - password 
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: "Return the token necessary for the authentication"
+          content:
+            application/json:
+              schema:
+                required:
+                - token
+                properties:
+                  token:
+                    type: string
